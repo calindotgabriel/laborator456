@@ -25,11 +25,11 @@ def validate_data(nr, bill_type, amount):
     validate_amount(amount)
 
 
-def validate_expense(ap):
+def validate_ap(ap):
     if not ap:
         raise NoExpenseFoundError
 
 
-def validate_block(bl):
+def validate_bl(bl):
     if not bl:
         raise EmptyListError("Can't delete any expenses.")

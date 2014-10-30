@@ -1,5 +1,6 @@
 from src.ro.ubb.calin.domain.getters import *
-from src.ro.ubb.calin.validation.validate import validate_data
+from src.ro.ubb.calin.validation.validate import validate_data, validate_ap, validate_nr, validate_bill_type, \
+    validate_bl
 
 
 def add_expenses_apartment(bl, nr, bill_type, amount):
@@ -11,7 +12,8 @@ def add_expenses_apartment(bl, nr, bill_type, amount):
     :param nr: int - apartment number
     :param bill_type: int - bill type
     :param amount: float - amount to pay
-
+    :return ap - The added apartment
+            TypeError - if incorrect input.
     """
     validate_data(nr, bill_type, amount)
 
@@ -35,11 +37,14 @@ def modify_expense(bl, nr, bill_type, new_amount):
     :param nr: int - apartment number
     :param bill_type: int - expense type
     :param new_amount: float - amount to overwrite the old one
-    :return: the modified apartment
+    :return: ap - the modified apartment
+             TypeError - if incorrect input.
+             NoExpenseFoundError - if no apartment with specified number found.
     """
     validate_data(nr, bill_type, new_amount)
-
     ap = get_ap_by_number(bl, nr)
+    validate_ap(ap)
+
     get_expenses(ap)[bill_type] = new_amount
     return ap
 
@@ -51,14 +56,35 @@ def delete_expenses_for_ap(bl, nr):
     :param bl: list - the block of apartments
     :param nr: int - apartment number
     :return: ap - apartment corresponding to nr but with no expenses
-             none - if we have no such apartment in our list
+             TypeError - invalid apartment number.
+             NoExpenseFoundError - if no apartment with specified number found.
     """
+    validate_nr(nr)
+
     ap = get_ap_by_number(bl, nr)
 
-    if not ap:
-        return None
+    validate_ap(ap)
+
     ap[KEY_EXPENSES] = get_no_expenses()
     return ap
+
+
+def delete_expenses_by_type(bl, bill_type):
+    """
+    Deletes all the expenses of a given type in all apartments.
+
+
+    :param bl: list - the block of apartments
+    :param bill_type: int - the bill type
+    :return
+            ValueError - invalid bill type
+            EmptyListError - no apartments in list, nothing to delete
+    """
+    validate_bill_type(bill_type)
+    validate_bl(bl)
+
+    for ap in bl:
+        get_expenses(ap)[bill_type] = 0.
 
 
 def delete_ap_expense_seq(bl, s, f):
@@ -81,19 +107,6 @@ def delete_ap_expense_seq(bl, s, f):
         else:
             status.append(True)
     return status
-
-
-def delete_expenses_by_type(bl, bill_type):
-    """
-    Deletes all the expenses of a given type in all apartments.
-
-
-    :param bl: list - the block of apartments
-    :param bill_type: int - the bill type
-    """
-
-    for ap in bl:
-        get_expenses(ap)[bill_type] = 0.
 
 
 def get_apartments_with_bigger_expense_than(bl, amount):
